@@ -1,0 +1,7 @@
+12/31/20, 23:58 - John Doe: Happy new year
+12/31/20, 23:59 - Foo Doe: It's too early for that
+
+...But happy new year anyways
+1/1/21, 00:00 - John Doe: Happy new year 🙈
+1/1/21, 00:01 - Foo Doe: Happy new year
+1/1/21, 00:13 - Bar Doe: Happy new year, to you guys to ♥
