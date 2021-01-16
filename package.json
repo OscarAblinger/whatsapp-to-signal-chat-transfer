@@ -1,0 +1,24 @@
+{
+  "name": "whatsapp-to-signal-chat-transfer",
+  "version": "0.1.0",
+  "description": "Small script that allows you to re-enact your whatsapp chat in signal",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AblingerOscar/whatsapp-to-signal-chat-transfer.git"
+  },
+  "keywords": [
+    "signal",
+    "whatsapp",
+    "chat"
+  ],
+  "author": "Oscar Ablinger",
+  "license": "GNU GPL V3.0",
+  "bugs": {
+    "url": "https://github.com/AblingerOscar/whatsapp-to-signal-chat-transfer/issues"
+  },
+  "homepage": "https://github.com/AblingerOscar/whatsapp-to-signal-chat-transfer#readme"
+}
