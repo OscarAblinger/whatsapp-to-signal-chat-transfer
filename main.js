@@ -1,4 +1,7 @@
 (function main() {
+
+/* ==================== Creating the UI and asking for the user input ==================== */
+
 const templateClassName = 'whatsapp-to-signal-template'
 const templateClassesPrefix = 'wts--'
 
@@ -101,6 +104,7 @@ function askForUserInput() {
     })
 }
 
+/* ==================== Parsing the Whatsapp logs ==================== */
 
 const eventStartRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{1,2}), (\d{2}):(\d{2}) - /m
 const messageStartRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{1,2}), (\d{2}):(\d{2}) - ([^:]+): (.+)$/m
@@ -142,6 +146,8 @@ function parseLogs({ options, chatLog, mediaFiles }) {
 
     return { events, options, mediaFiles }
 }
+
+/* ==================== Putting it all together & calling the methods ==================== */
 
 askForUserInput()
     .then(parseLogs)
