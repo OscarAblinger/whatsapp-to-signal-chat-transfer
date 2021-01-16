@@ -127,7 +127,7 @@ function parseLogs({ options, chatLog, mediaFiles }) {
             
             if (match) {
                 // message start -> new message
-                [_, mo, d, y, h, mi, sender, text] = match
+                [ignored, mo, d, y, h, mi, sender, text] = match
                 events.push({
                     type: messageType.message,
                     time: new Date(y, mo, d, h, mi, 0, 0),
@@ -147,10 +147,107 @@ function parseLogs({ options, chatLog, mediaFiles }) {
     return { events, options, mediaFiles }
 }
 
+/* ==================== Sending the events as texts ==================== */
+const textField = document.querySelector('form.send div.ql-editor[contenteditable="true"][data-placeholder="Send a message"]')
+const textFieldToggleSizeButton = document.querySelector('form.send div.module-composition-area__toggle-large > button')
+const getSubmitButton = () => document.querySelector('form.send button.module-composition-area__send-button')
+
+// if we can't find the textinput or toggleButton, there is no point in doing anything, so we just notify the user and exit
+if (!textField) {
+    window.alert(`We couldn't find the input field. Please try again if it's visibile.
+
+If it already visible, please create an issue in the repository. (If you don't know how, please tell this to the trusted friend that read through the code)
+Thank you :)`)
+    return
+}
+
+function requestAfterAnimationFrame() {
+    return new Promise((resolve, _) => {
+        window.requestAnimationFrame(() => {
+            window.setTimeout(resolve)
+        })
+    })
+}
+
+async function pressSubmit() {
+    // throughout this function, we'll have to wait for the UI to catch up & draw
+    // before we can select certain ui elements
+    await requestAfterAnimationFrame()
+
+    // make text field large so we can press the submit button
+    textFieldToggleSizeButton.click()
+
+    await requestAfterAnimationFrame()
+
+    // press the submit button
+    const submitBtn = getSubmitButton()
+    submitBtn.click()
+
+    // let Signal reset after pressing submit
+    await requestAfterAnimationFrame()
+}
+
+async function sendString(text) {
+    if (text.trim() !== '') {
+        if (textField.firstChild) {
+            textField.removeChild(textField.firstChild)
+        }
+
+        for (line of text.split('\n')) {
+            const el = document.createElement('div')
+            el.setAttribute('dir', 'auto')
+            el.innerText = line
+            textField.appendChild(el)
+        }
+        
+        await pressSubmit()
+    }
+}
+
+async function sendMedia({files, text}) {
+    // media is currently not supported
+    await sendString(text)
+}
+
+function enrichWithMediaFiles({ message, options, mediaFiles }) {
+    return {hasMedia: false, mediaAndTextPairs: []}
+}
+
+async function sendMessage({ message, options, mediaFiles }) {
+    const {hasMedia, mediaAndTextPairs} = enrichWithMediaFiles({ message, options, mediaFiles })
+    if (hasMedia) {
+        for ({files, text} of mediaAndTextPairs) {
+            await sendMedia({files, text})
+        }
+    } else {
+        await sendString(message)
+    }
+}
+
+function turnEventIntoStringBasedOnOptions({ msgEvent, options }) {
+    return msgEvent.text
+}
+
+async function sendEvents({ events, options, mediaFiles }) {
+    for (msgEvent of events) {
+        if (msgEvent.type === messageType.message) {
+            await sendMessage({ message: turnEventIntoStringBasedOnOptions({ msgEvent: msgEvent, options }), options, mediaFiles })
+        } else {
+            // currently we just don't do anything for notifications
+        }
+    }
+
+    return // returning nothing
+}
+
 /* ==================== Putting it all together & calling the methods ==================== */
 
 askForUserInput()
     .then(parseLogs)
+    .then(sendEvents)
+    .then(() => {
+        window.alert("Successfully imported all messages")
+    })
     .catch(reason => {}) // we don't have to do anything here – this is to avoid the error when you have an uncaught promise
 
 })()
