@@ -243,15 +243,18 @@ function turnEventIntoStringBasedOnOptions({ msgEvent, options }) {
 }
 
 async function sendEvents({ events, options, mediaFiles }) {
+    let sentEvents = 0
+
     for (msgEvent of events) {
         if (msgEvent.type === messageType.message) {
             await sendMessage({ message: turnEventIntoStringBasedOnOptions({ msgEvent: msgEvent, options }), options, mediaFiles })
+            ++sentEvents
         } else {
             // currently we just don't do anything for notifications
         }
     }
 
-    return // returning nothing
+    return sentEvents
 }
 
 /* ==================== Putting it all together & calling the methods ==================== */
@@ -260,8 +263,8 @@ askForUserInput()
     .then(parseLogs)
     .then(filterMediaOmitted)
     .then(sendEvents)
-    .then(() => {
-        window.alert("Successfully imported all messages")
+    .then(sentMessages => {
+        window.alert(`Successfully imported ${sentMessages} message(s)`)
     })
     .catch(reason => {}) // we don't have to do anything here – this is to avoid the error when you have an uncaught promise
 
