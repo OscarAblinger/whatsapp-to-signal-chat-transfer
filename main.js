@@ -147,6 +147,20 @@ function parseLogs({ options, chatLog, mediaFiles }) {
     return { events, options, mediaFiles }
 }
 
+/* ==================== Filter "Media omitted" ==================== */
+/*
+    If you choose to export without media, then any messages with media are exported as "<Media omitted>".
+    This means that text messages that were sent together with media are NOT exported and hence cannot be restored.
+*/
+
+function filterMediaOmitted({ events, options, mediaFiles }) {
+    return {
+        events: events.filter(ev => ev.text.trim !== '<Media omitted>'),
+        options,
+        mediaFiles
+    }
+}
+
 /* ==================== Sending the events as texts ==================== */
 const textField = document.querySelector('form.send div.ql-editor[contenteditable="true"][data-placeholder="Send a message"]')
 const textFieldToggleSizeButton = document.querySelector('form.send div.module-composition-area__toggle-large > button')
@@ -244,6 +258,7 @@ async function sendEvents({ events, options, mediaFiles }) {
 
 askForUserInput()
     .then(parseLogs)
+    .then(filterMediaOmitted)
     .then(sendEvents)
     .then(() => {
         window.alert("Successfully imported all messages")

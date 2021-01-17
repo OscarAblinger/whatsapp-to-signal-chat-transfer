@@ -37,6 +37,9 @@ In any of those options, you should then end up with the files on your PC.
 Please ensure that the files of each chat are in their own folder, so you are able to differentiate between the different chats.
 (If you decided against exporting media or if there was no media in the chat, then you will only have one file – this is fine, too).
 
+> Note that, if you choose to not export media, then whatsapp will replace the entire message with `<Media omitted>`.
+> This script automatically filters those out, but this also means that text that was sent alongside some media will _not_ show up (as whatsapp doesn't export those).
+
 ## Step 2: Open the "developer console" on the Signal web app
 
 On the Signal app now select the group or person that you want to restore the history with.

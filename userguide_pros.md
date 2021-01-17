@@ -7,6 +7,10 @@
 - [Signal desktop app in which you're "logged in"](https://www.signal.org/download/)
 - [Exported Whatsapp chat history (**not** the back up)](https://faq.whatsapp.com/android/chats/how-to-save-your-chat-history/?lang=en)
 
+> Note that, if you choose to not export media, then whatsapp will replace the entire message with `<Media omitted>`.
+> This script automatically filters those out, but this also means that text that was sent alongside some media will _not_ show up (as whatsapp doesn't export those).
+> If you still want them, you can export with media and then remove the referenced files from the folder
+
 ## Step 1: Verify code
 
 The code found in the [main.js](main.js) file in this repository will be executed in a context that allows it to control the UI of your Signal app.
