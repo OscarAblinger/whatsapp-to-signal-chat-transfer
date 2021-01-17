@@ -28,7 +28,7 @@ function getOrCreateTemplate() {
     </label>
 
     <button class="${templateClassesPrefix}btn-abort ${templateClassesPrefix}button">Abort (Don't import and close)</button>
-    <button class="${templateClassesPrefix}btn-start ${templateClassesPrefix}button">Continue (import chat)</button>
+    <button class="${templateClassesPrefix}btn-start ${templateClassesPrefix}button">Start (import chat)</button>
 
     <style>
     .${templateClassesPrefix}wrapper {
