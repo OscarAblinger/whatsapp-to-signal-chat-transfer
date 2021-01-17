@@ -10,6 +10,24 @@ It does this by reading the whatsapp log (that you provide – see the tutorial 
 
 > _Another note: The script will send all of your texts again over Signal. This will use your data/SMS/MMS just the same as if you 'd send them manually over Signal._
 
+## Some assumptions the script has to make
+
+Since whatsapp's chat log does not have a format that is always perfectly mappable to the original chat, a few assumptions were made in order to parse it:
+
+- Nobody sent a message with the only content being `<media omitted>`
+    - This message is how whatsapp marks messages where media was originally sent, but was not exported
+    - Otherwise that message will be ignored
+- Nobody sent a message that ends in `(file attached)` and before it features a text matching the regex `\S+\.(\S+)? `
+    - This is how sent images/videos/other files look like in the log
+    - The script will try to import a media with the name equal to the text before `(file attached)`
+- Nobody has a name that includes a `:`
+    - Since all messages of whatsapp are exported as `<name of the person who sent the message>: <message>`, the part after the `:` in the name of a person will have to be interpreted as the separator between the name and the message
+    - All messages of that person will be prefixed with the part of his name after the `:` and an additional `: `
+- None of the notifications that whatsapp sent include `:`
+    - Again, this is the only way that whatsapp's logs mark messages (that I found)
+    - AFAIK this should only happen if the name of the group ever included `:`
+    - The easiest way to stop that is by going into the text file and removing the `:` in the notification(s)
+
 ## How to use it
 
 I wrote two user guides, depending on your level of technical knowledge:
