@@ -16,7 +16,8 @@
 The code found in the [main.js](main.js) file in this repository will be executed in a context that allows it to control the UI of your Signal app.
 Naturally, you shouldn't just execute a random script from the internet in that way.
 
-Please have a look through the JavaScript code to ensure that it doesn't do that. (It doesn't – but you know… you shouldn't trust a random internet stranger (me))
+Please have a look through the JavaScript code to ensure that it doesn't do anything malicious.
+(It doesn't – but you know… you shouldn't trust a random internet stranger (me))
 
 In order to allow you to do that, I decided to write my entire code directly in one .js file.
 That way so you don't have to trust me that the built file is actually just the built file of whatever source I provide and that I didn't also add some malicious code in the build stage.
