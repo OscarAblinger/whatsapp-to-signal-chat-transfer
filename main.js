@@ -127,7 +127,7 @@ function parseLogs({ options, chatLog, mediaFiles }) {
             
             if (match) {
                 // message start -> new message
-                [ignored, mo, d, y, h, mi, sender, text] = match
+                const [ignored, mo, d, y, h, mi, sender, text] = match
                 events.push({
                     type: messageType.message,
                     time: new Date(y, mo, d, h, mi, 0, 0),
@@ -165,6 +165,7 @@ function filterMediaOmitted({ events, options, mediaFiles }) {
 const textField = document.querySelector('form.send div.ql-editor[contenteditable="true"][data-placeholder="Send a message"]')
 const textFieldToggleSizeButton = document.querySelector('form.send div.module-composition-area__toggle-large > button')
 const getSubmitButton = () => document.querySelector('form.send button.module-composition-area__send-button')
+const getDropZone = () => document.querySelector('div.conversation-stack > div.conversation.group')
 
 // if we can't find the textinput or toggleButton, there is no point in doing anything, so we just notify the user and exit
 if (!textField) {
@@ -194,14 +195,13 @@ async function pressSubmit() {
     await requestAfterAnimationFrame()
 
     // press the submit button
-    const submitBtn = getSubmitButton()
-    submitBtn.click()
+    getSubmitButton().click()
 
     // let Signal reset after pressing submit
     await requestAfterAnimationFrame()
 }
 
-async function sendString(text) {
+async function sendString(text, alwaysSubmit) {
     if (text.trim() !== '') {
         if (textField.firstChild) {
             textField.removeChild(textField.firstChild)
@@ -215,24 +215,85 @@ async function sendString(text) {
         }
         
         await pressSubmit()
+    } else if (alwaysSubmit) {
+        await pressSubmit()
     }
 }
 
-async function sendMedia({files, text}) {
-    // media is currently not supported
-    await sendString(text)
+async function sendMedia({ file, overrideName, message }) {
+    if (!file) {
+        console._error(`Could not find file '${overrideName}'`)
+    } else {
+        const renamedFile = overrideName == undefined
+            ? file
+            : new File([file], overrideName, { type: file.type, lastModified: file.lastModified })
+
+        // using the dropping api integration of Signal
+        let customEvent = new CustomEvent('drop')
+        customEvent.dataTransfer = {
+            types: [ 'Files' ],
+            files: [ renamedFile ]
+        }
+
+        getDropZone().dispatchEvent(customEvent)
+        
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        await sendString(message, true)
+
+        await new Promise(resolve => setTimeout(resolve, 1000))
+    }
 }
 
+const fileAttachedMarker = '(file attached)'
 function enrichWithMediaFiles({ message, options, mediaFiles }) {
-    return {hasMedia: false, mediaAndTextPairs: []}
+    const [firstLine, ...tail] = message.split('\n')
+
+    if (!firstLine.endsWith(fileAttachedMarker)) {
+        // no media found
+        return { hasMedia: false }
+    } else {
+        // media found
+        const fileName = firstLine.substring(0,  message.indexOf(fileAttachedMarker)).trim()
+
+        if (fileName.endsWith('.') && tail.length > 0) {
+            // files that are sent as files and not seen as images/videos/gifs have no file ending and their
+            // original file name is instead sent as the message text
+            // when exporting the suffix '.bin' is added – resulting in file named e.g. 'DOC-20210212-WA0001..bin'
+            const actualFileName = fileName + '.bin'
+            const originalFileName = tail[0]
+            const restOfMessage = tail.slice(1).join('\n')
+
+            if (tail.length > 1) {
+                console._warn('Hey it seems that in your logs, there was a file that was sent together with a message. I thought that was impossible. Please open a ticket (and if you\'re fine with it include the offending part or something of the same format)')
+                console._warn('internal file name: ' + fileName + '(.bin) (file ' + (mediaFiles.hasOwnProperty(actualFileName) ? 'exists' : 'doesn\'t exist') + ')'
+                    + '\nassumed actual file name: ' + originalFileName + ' (file ' + (mediaFiles.hasOwnProperty(originalFileName) ? 'exists' : 'doesn\'t exist') + ')'
+                    + '\nfull message: ' + message
+                )
+            }
+
+            return {
+                hasMedia: true,
+                file: mediaFiles[actualFileName],
+                overrideName: originalFileName,
+                message: restOfMessage
+            }
+
+        } else {
+            const messageText = tail.join('\n')
+            return {
+                hasMedia: true,
+                file: mediaFiles[fileName],
+                message: messageText
+            }
+        }
+    }
 }
 
 async function sendMessage({ message, options, mediaFiles }) {
-    const {hasMedia, mediaAndTextPairs} = enrichWithMediaFiles({ message, options, mediaFiles })
+    const {hasMedia, file, overrideName, message: mediaMessage} = enrichWithMediaFiles({ message, options, mediaFiles })
     if (hasMedia) {
-        for ({files, text} of mediaAndTextPairs) {
-            await sendMedia({files, text})
-        }
+        await sendMedia({ file, overrideName, message: mediaMessage })
     } else {
         await sendString(message)
     }

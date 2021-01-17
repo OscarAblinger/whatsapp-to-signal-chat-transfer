@@ -38,7 +38,7 @@ I wrote two user guides, depending on your level of technical knowledge:
 ## Roadmap
 
 - [x] Handle pure text messages
-- [ ] Handle files that were sent
+- [x] Handle files that were sent
 - [ ] Allow for different configurations
     - [ ] Including the timestamp using different formats
     - [ ] Including the sender as a prefix to the text
