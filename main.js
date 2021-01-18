@@ -4,6 +4,7 @@
 
 const templateClassName = 'whatsapp-to-signal-template'
 const templateClassesPrefix = 'wts--'
+const chatNameCssVariableName = '--' + templateClassesPrefix + 'chat-name'
 
 function getOrCreateTemplate() {
     let template = document.querySelector('body > template.' + templateClassName)
@@ -15,7 +16,7 @@ function getOrCreateTemplate() {
         template.innerHTML = `
 <div class="${templateClassesPrefix}wrapper">
     <h2>
-        Import whatsapp messages into the chat <span class="${templateClassesPrefix}chatname"></span>
+        Import whatsapp messages to "<span class="${templateClassesPrefix}chatname"></span>"
     </h2>
 
     <p>
@@ -27,8 +28,10 @@ function getOrCreateTemplate() {
         <input class="${templateClassesPrefix}files" type="file" multiple>
     </label>
 
-    <button class="${templateClassesPrefix}btn-abort ${templateClassesPrefix}button">Abort (Don't import and close)</button>
-    <button class="${templateClassesPrefix}btn-start ${templateClassesPrefix}button">Start (import chat)</button>
+    <div class="${templateClassesPrefix}button-wrapper">
+        <button class="${templateClassesPrefix}btn-abort ${templateClassesPrefix}button">Abort (Don't import and close)</button>
+        <button class="${templateClassesPrefix}btn-start ${templateClassesPrefix}button">Start (import chat)</button>
+    </div>
 
     <style>
     .${templateClassesPrefix}wrapper {
@@ -41,15 +44,28 @@ function getOrCreateTemplate() {
         color: black;
         background-color: white;
         z-index: 100;
+        overflow: hidden;
 
         padding: 1rem;
         border-radius: 1rem;
     }
     .${templateClassesPrefix}chatname::After {
-        content: var(--chat-name, "No chat is open currently. Please abort this process and re-do it after opening a chat!");
+        content: var(${chatNameCssVariableName}, "No chat is open currently. Please abort this process and re-do it after opening a chat!");
+    }
+    .${templateClassesPrefix}button-wrapper {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        display: flex;
     }
     .${templateClassesPrefix}button {
-        padding: 0.5rem;
+        padding: 1rem;
+        flex: 1;
+    }
+    .${templateClassesPrefix}button:hover {
+        background-color: dark-grey;
     }
     </style>
 </div>
@@ -57,6 +73,11 @@ function getOrCreateTemplate() {
         document.body.appendChild(template)
         return template
     }
+}
+
+function updateChatNameCssVariable() {
+    const name = document.querySelector('div.module-conversation-header__title').firstChild.data
+    document.body.style.setProperty(chatNameCssVariableName, '"' + name + '"')
 }
 
 function askForUserInput() {
@@ -101,6 +122,8 @@ function askForUserInput() {
                 mediaFiles
             })
         })
+
+        updateChatNameCssVariable()
     })
 }
 
