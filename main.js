@@ -102,6 +102,11 @@ function askForUserInput() {
         })
 
         startEl.addEventListener('click', async () => {
+            if (!files || files.length == 0) {
+                window.alert('Please first upload your files')
+                return
+            }
+
             const mediaFiles = {}
             let chatLogPromise
                
