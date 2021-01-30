@@ -368,8 +368,8 @@ function enrichWithMediaFiles({ message, options, mediaFiles }) {
             const restOfMessage = tail.slice(1).join('\n')
 
             if (tail.length > 1) {
-                console._warn('Hey it seems that in your logs, there was a file that was sent together with a message. I thought that was impossible. Please open a ticket (and if you\'re fine with it include the offending part or something of the same format)')
-                console._warn('internal file name: ' + fileName + '(.bin) (file ' + (mediaFiles.hasOwnProperty(actualFileName) ? 'exists' : 'doesn\'t exist') + ')'
+                console.error('Hey it seems that in your logs, there was a file that was sent together with a message. I thought that was impossible. Please open a ticket (and if you\'re fine with it include the offending part or something of the same format): https://github.com/AblingerOscar/whatsapp-to-signal-chat-transfer/issues/new')
+                console.error('internal file name: ' + fileName + '(.bin) (file ' + (mediaFiles.hasOwnProperty(actualFileName) ? 'exists' : 'doesn\'t exist') + ')'
                     + '\nassumed actual file name: ' + originalFileName + ' (file ' + (mediaFiles.hasOwnProperty(originalFileName) ? 'exists' : 'doesn\'t exist') + ')'
                     + '\nfull message: ' + message
                 )
@@ -434,6 +434,8 @@ askForUserInput()
     .then(sentMessages => {
         window.alert(`Successfully imported ${sentMessages} message(s)`)
     })
-    .catch(reason => {}) // we don't have to do anything here – this is to avoid the error when you have an uncaught promise
-
+    .catch(reason => {
+        console.error('An error occured. Please open an issue referencing the following output here: https://github.com/AblingerOscar/whatsapp-to-signal-chat-transfer/issues/new')
+        console.error(reason)
+    })
 })()
