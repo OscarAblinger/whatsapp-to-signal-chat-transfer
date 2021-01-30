@@ -45,6 +45,6 @@ It is human readable and as long as you keep to the same format, the script is s
 - [ ] Allow for different configurations
     - [x] Including the timestamp using different formats
     - [x] Including the sender as a prefix to the text
-    - [ ] Include notifications (e.g. "X created group …", "X added Y")
+    - [x] Include notifications (e.g. "X created group …", "X added Y")
     - [ ] Skip media files that aren't available without alarm
 - [ ] Allow for synchronisation between multiple people in order to simulate senders

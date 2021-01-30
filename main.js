@@ -54,6 +54,13 @@ function getOrCreateTemplate() {
         <input class="${templateClassesPrefix}files" type="file" multiple>
     </label>
 
+    <br/>
+
+    <label>
+        <input class="${templateClassesPrefix}option-include-notifications" type="checkbox">
+        Include notifications like "You created group "Test"" or "A added B"
+    </label>
+
     <p>
         With the following option, you can define prefixes that should be added in front of every message based on some information of the original message:
         Simple write the text in the below textbox and it will be prepended to every message.
@@ -148,14 +155,18 @@ function askForUserInput() {
         const startEl = wrapper.querySelector(`.${templateClassesPrefix}btn-start`)
         const abortEl = wrapper.querySelector(`.${templateClassesPrefix}btn-abort`)
         const filesEl = wrapper.querySelector(`.${templateClassesPrefix}files`)
+
         const prefixEl = wrapper.querySelector(`.${templateClassesPrefix}option-prefix`)
+        const notificationEl = wrapper.querySelector(`.${templateClassesPrefix}option-include-notifications`)
+
         const previewEl = wrapper.querySelector(`.${templateClassesPrefix}option-prefix-preview`)
         
         const closeImportPopup = () => document.body.removeChild(wrapper)
 
         function loadOptions() {
             return {
-                prefixTemplate: prefixEl.value ?? ''
+                prefixTemplate: prefixEl.value ?? '',
+                includeNotifications: notificationEl.checked ?? false
             }
         }
 
@@ -417,8 +428,9 @@ async function sendEvents({ events, options, mediaFiles }) {
         if (msgEvent.type === messageType.message) {
             await sendMessage({ msgEvent, options, mediaFiles })
             ++sentEvents
-        } else {
-            // currently we just don't do anything for notifications
+        } else if (msgEvent.type === messageType.notification && options.includeNotifications) {
+            await sendString(msgEvent.text)
+            ++sentEvents
         }
     }
 
