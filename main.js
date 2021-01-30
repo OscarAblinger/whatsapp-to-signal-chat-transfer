@@ -7,40 +7,24 @@ const messageType = {
     notification: "notification"
 }
 
-function applyPrefixToEvent(options) {
-    return ({ type, time, sender, text }) => {
-        if (type === messageType.message) {
-            const prefix = options.prefixTemplate
-                .replace('{sender}', sender)
-                .replace('{YY}', time.getFullYear())
-                .replace('{MM}', time.getMonth().toString().padStart(2, '0'))
-                .replace('{M}', time.getMonth())
-                .replace('{DD}', time.getDay().toString().padStart(2, '0'))
-                .replace('{D}', time.getDay())
-                .replace('{HH}', time.getHours().toString().padStart(2, '0'))
-                .replace('{H}', time.getHours())
-                .replace('{mm}', time.getMinutes().toString().padStart(2, '0'))
-                .replace('{m}', time.getMinutes())
-            text = prefix + text
-        }
-
-        return {
-            type,
-            time,
-            sender,
-            text 
-        }
+function transformEventIntoStringWithPrefix({ event: { type, time, sender, text }, options }) {
+    if (type === messageType.message) {
+        const prefix = options.prefixTemplate
+            .replace('{sender}', sender)
+            .replace('{YY}', time.getFullYear())
+            .replace('{MM}', time.getMonth().toString().padStart(2, '0'))
+            .replace('{M}', time.getMonth())
+            .replace('{DD}', time.getDay().toString().padStart(2, '0'))
+            .replace('{D}', time.getDay())
+            .replace('{HH}', time.getHours().toString().padStart(2, '0'))
+            .replace('{H}', time.getHours())
+            .replace('{mm}', time.getMinutes().toString().padStart(2, '0'))
+            .replace('{m}', time.getMinutes())
+        return prefix + text
+    } else {
+        return text
     }
 }
-
-function addPrefixToAllEvents({ events, options, mediaFiles }) {
-    return {
-        events: events.map(applyPrefixToEvent(options)),
-        options,
-        mediaFiles
-    }
-}
-
 
 /* ==================== Creating the UI and asking for the user input ==================== */
 
@@ -215,7 +199,10 @@ function askForUserInput() {
 
         // update prefix preview
         function updatePreview() {
-            previewEl.innerText = applyPrefixToEvent(loadOptions())({ type: messageType.message, sender: 'Oscar', text: "Happy new Year!", time: new Date(2020, 1, 1, 0, 1, 8) }).text
+            previewEl.innerText = transformEventIntoStringWithPrefix({
+                options: loadOptions(),
+                event: { type: messageType.message, sender: 'Oscar', text: "Happy new Year!", time: new Date(2020, 1, 1, 0, 1, 8) }
+            })
         }
 
         prefixEl.addEventListener('input', updatePreview)
@@ -406,17 +393,21 @@ function enrichWithMediaFiles({ message, options, mediaFiles }) {
     }
 }
 
-async function sendMessage({ message, options, mediaFiles }) {
-    const {hasMedia, file, overrideName, message: mediaMessage} = enrichWithMediaFiles({ message, options, mediaFiles })
-    if (hasMedia) {
-        await sendMedia({ file, overrideName, message: mediaMessage })
-    } else {
-        await sendString(message)
-    }
+function turnEventIntoStringBasedOnOptions({ msgEvent, options }) {
+    return transformEventIntoStringWithPrefix({event: msgEvent, options})
 }
 
-function turnEventIntoStringBasedOnOptions({ msgEvent, options }) {
-    return msgEvent.text
+async function sendMessage({ msgEvent, options, mediaFiles }) {
+    const {hasMedia, file, overrideName, message: mediaMessage} = enrichWithMediaFiles({ message: msgEvent.text, options, mediaFiles })
+    if (hasMedia) {
+        await sendMedia({
+            file,
+            overrideName,
+            message: turnEventIntoStringBasedOnOptions({ msgEvent: { ...msgEvent, text: mediaMessage }, options })
+        })
+    } else {
+        await sendString(turnEventIntoStringBasedOnOptions({ msgEvent: msgEvent, options }))
+    }
 }
 
 async function sendEvents({ events, options, mediaFiles }) {
@@ -424,7 +415,7 @@ async function sendEvents({ events, options, mediaFiles }) {
 
     for (msgEvent of events) {
         if (msgEvent.type === messageType.message) {
-            await sendMessage({ message: turnEventIntoStringBasedOnOptions({ msgEvent: msgEvent, options }), options, mediaFiles })
+            await sendMessage({ msgEvent, options, mediaFiles })
             ++sentEvents
         } else {
             // currently we just don't do anything for notifications
@@ -439,7 +430,6 @@ async function sendEvents({ events, options, mediaFiles }) {
 askForUserInput()
     .then(parseLogs)
     .then(filterMediaOmitted)
-    .then(addPrefixToAllEvents)
     .then(sendEvents)
     .then(sentMessages => {
         window.alert(`Successfully imported ${sentMessages} message(s)`)
